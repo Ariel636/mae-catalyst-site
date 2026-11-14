@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Газгольдер и жидкостный эжектор</title>
+<meta name="description" content="Улавливание паров метана на резервуарном парке: газгольдер 1 500 м³ и жидкостный эжектор вместо компрессорной VRU.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Exo+2:wght@400;500;600;700&display=swap&subset=cyrillic" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script>
+  // static/reduced flags before first paint so nothing flashes
+  (function(){var s=/[?&]static=1/.test(location.search),r=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.documentElement.classList.toggle('static',s);document.documentElement.classList.toggle('still',s||r);})();
+</script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+</head>
+<body>
+<a class="skip" href="#problem">К содержанию</a>
+<nav class="nav" aria-label="Разделы">
+  <a href="#hero" class="nav__mark">Газгольдер + эжектор</a>
+  <button type="button" class="nav__toggle" aria-expanded="false" aria-controls="navlinks">Разделы</button>
+  <div class="nav__links" id="navlinks"><a href="#problem">Проблема</a><a href="#how">Как работает</a><a href="#pid">P&amp;ID</a><a href="#cad">CAD</a><a href="#drawings">Чертежи</a><a href="#calc">Расчёт</a><a href="#economics">Экономика</a><a href="#delivery">Сроки</a><a href="#verdict">Итог</a></div>
+</nav>
+<!-- The story: one sticky stage driven by scroll (from c3_steppe). In still mode it becomes four fixed frames. -->
+<section id="hero" class="story" aria-label="История: от спутникового снимка к газгольдеру">
+  <div class="story__track">
+    <div class="stage" data-p="0">
+      <div class="world">
+        <img class="ph0" src="img/overview_night.jpg" alt="Спутниковый снимок НПС им. Т. Касымова и окрестностей" width="1400" height="1000">
+        <svg class="ovl" viewBox="0 0 1400 1000" aria-hidden="true"><g class="ovl--l"><path d="M655 398L650 452"/><text x="655" y="388" text-anchor="middle">НПС им. Т. Касымова</text></g><g class="ovl--p"><path d="M655 650L650 600"/><text x="655" y="676" text-anchor="middle">НПС им. Т. Касымова</text></g></svg>
+        <div class="inner">
+          <img class="ph1" src="img/park_night.jpg" alt="Резервуарный парк НПС им. Т. Касымова крупно" width="1400" height="1000">
+        </div>
+      </div>
+      <canvas class="plume" aria-hidden="true"></canvas>
+      <svg class="pipes" viewBox="0 0 1400 1000" aria-hidden="true"></svg>
+      <div class="shade"></div>
+      <div class="hud" aria-hidden="true"><span class="hud__clock">11:00</span><span class="hud__what">день</span></div>
+      <p class="credit">Снимок: Esri World Imagery (Maxar, Earthstar Geographics). Схема на снимке условная.</p>
+      <div class="panel" data-from="0" data-to=".17">
+        <h1 class="statement">20&nbsp;кг метана<br>каждый час</h1>
+        <p class="lede">уходят в небо из шести РВС-5000. НПС им.&nbsp;Т.&nbsp;Касымова.</p>
+        <p class="lede sol">Решение: газгольдер и жидкостный эжектор вместо компрессора.</p>
+        <p class="hint">Листайте или запустите сутки</p>
+        <p class="storyctl"><button type="button" class="autostart" id="autostart">▶ Запустить сутки</button><a class="skipstory" href="#problem">Пропустить историю</a></p>
+      </div>
+      <div class="panel" data-from=".155" data-to=".34">
+        <h2 class="big">Резервуарный парк</h2>
+        <p class="lede">6 × РВС-5000. CH<sub>4</sub> 85&nbsp;%, C2–C4 10&nbsp;%, инертные 5&nbsp;%.</p>
+      </div>
+      <div class="panel" data-from=".315" data-to=".5">
+        <h2 class="big">Днём крыши нагреваются</h2>
+        <p class="lede"><span class="v">Фиолетовое облако</span>: метан из дыхательных клапанов. Летом ×1,5.</p>
+      </div>
+      <div class="panel" data-from=".475" data-to=".64">
+        <h2 class="big">175,2 тонны за год</h2>
+        <p class="lede">Ночью резервуары вдыхают. 4&nbsp;765&nbsp;т CO<sub>2</sub>-экв в год, GWP 27,2.</p>
+      </div>
+      <div class="panel" data-from=".615" data-to=".82">
+        <h2 class="big">Пары уходят в коллектор</h2>
+        <p class="lede">Коллектор Г-150, <span class="c">газгольдер GH-1</span>: 1&nbsp;500&nbsp;м³, +0,5&nbsp;кПа.</p>
+      </div>
+      <div class="panel" data-from=".795" data-to="1.01">
+        <h2 class="big">80&nbsp;% включает эжектор, 55&nbsp;% выключает</h2>
+        <p class="lede">Газ идёт в печь П-1 как топливо. Улавливается 95&nbsp;%.</p>
+      </div>
+    </div>
+  </div>
+  <div class="autobar" id="autobar" role="group" aria-label="Автопоказ суток" hidden>
+    <button type="button" id="abPause" aria-pressed="false">Пауза</button>
+    <button type="button" id="abSpeed" aria-label="Скорость 1×">1×</button>
+    <div class="ab__track" aria-hidden="true"><i class="ab__fill"></i></div>
+    <span class="ab__clock" aria-live="off"></span>
+    <button type="button" id="abStop">Стоп</button>
+    <button type="button" class="ab__next" id="abNext" hidden>Дальше: проблема в цифрах ↓</button>
+  </div>
+</section>
+<main>
+<section id="problem" class="sec">
+  <div class="wrap">
+    <h2 class="h">Проблема в цифрах</h2>
+    <dl class="facts">
+      <div><dt>метана в час из всего парка</dt><dd><b>20</b> кг</dd></div>
+      <div><dt>метана в год</dt><dd><b>175,2</b> т</dd></div>
+      <div><dt>CO<sub>2</sub>-эквивалента в год (GWP100 27,2, IPCC AR6)</dt><dd><b>4&nbsp;765</b> т</dd></div>
+    </dl>
+    <figure class="mix">
+      <div class="mix__bar"><span style="--w:85" class="m1"></span><span style="--w:10" class="m2"></span><span style="--w:5" class="m3"></span></div>
+      <figcaption><span class="k1">CH<sub>4</sub> 85&nbsp;%</span><span class="k2">C2–C4 10&nbsp;%</span><span class="k3">инертные 5&nbsp;%</span><span class="muted">воздух от −10 до +30&nbsp;°C</span></figcaption>
+    </figure>
+  </div>
+</section>
+<section id="how" class="sec">
+  <div class="wrap">
+    <h2 class="h">Как это работает</h2>
+    <ol class="steps" id="steps"></ol>
+    <div class="sim">
+      <div class="sim__text">
+        <h3 class="h3">Уровень газгольдера</h3>
+        <p>Пуск эжектора 80&nbsp;%, стоп 55&nbsp;%.</p>
+        <label class="range"><span>Заполнение газгольдера: <output id="lvlOut">40 %</output></span>
+          <input type="range" id="lvl" min="0" max="100" value="40" step="1"></label>
+        <p class="state" id="lvlState" aria-live="polite">EJ-1 стоит</p>
+        <ul class="setp" id="setp"></ul>
+      </div>
+      <svg class="sim__fig" viewBox="0 0 350 240" aria-hidden="true">
+        <defs><clipPath id="domeClip"><path d="M30 200 A130 130 0 0 1 290 200 Z"/></clipPath></defs>
+        <rect id="lvlFill" x="0" y="200" width="320" height="0" clip-path="url(#domeClip)" class="fillgas"/>
+        <path d="M30 200 A130 130 0 0 1 290 200" class="domeline"/>
+        <line x1="10" y1="200" x2="310" y2="200" class="ground"/>
+        <line id="m80" x1="20" x2="300" class="mark"/><line id="m55" x1="20" x2="300" class="mark"/>
+        <text id="t80" x="306" class="marktxt">80 %</text><text id="t55" x="306" class="marktxt">55 %</text>
+        <g id="ejg"><circle cx="160" cy="222" r="9" class="ej"/><text x="176" y="226" class="marktxt">EJ-1</text></g>
+      </svg>
+    </div>
+    <div class="seasons" id="seasons"></div>
+    <figure class="live">
+      <iframe data-src="live_d.html" title="Газгольдер и эжектор: сутки работы, сезоны" loading="lazy"></iframe>
+      <figcaption>Сутки работы и сезоны, интерактивно</figcaption>
+    </figure>
+    <details class="locks">
+      <summary>11 блокировок и защит</summary>
+      <table id="locks"><thead><tr><th>№</th><th>Условие</th><th>Действие</th></tr></thead><tbody></tbody></table>
+    </details>
+  </div>
+</section>
+<section id="pid" class="sec">
+  <div class="wrap">
+    <h2 class="h">P&amp;ID с тегами</h2>
+    <p class="intro" id="pidIntro">Наведите на тег. Колесо после щелчка: масштаб.</p>
+    <div class="pid-grid">
+      <aside class="pid-note">
+        <label class="find"><span>Найти тег</span>
+          <select id="pid-find"><option value="">40 тегов на схеме</option></select></label>
+        <div class="pid-card" id="pid-info" aria-live="polite"><p>Выберите тег на схеме.</p></div>
+      </aside>
+      <div class="viewer viewer--neg" id="pid-viewer"></div>
+    </div>
+  </div>
+</section>
+<section id="cad" class="sec">
+  <div class="wrap">
+    <h2 class="h">Это спроектировано</h2>
+    <p class="intro">Чертёж VD-01-000, лист 3, и 3D-модель блока</p>
+    <div class="cad">
+      <figure class="cad__main">
+        <figcaption class="seg" role="group" aria-label="Что показать" id="stagebar"></figcaption>
+        <div class="stage3" id="stage" data-mode="draw">
+          <div class="stage-draw" id="stage-draw" role="img" aria-label="Изометрия блока эжектора, чертёж VD-01-000, лист 3"></div>
+          <model-viewer id="mv" class="stage-model" src="assets/cad/skid.glb" poster="assets/cad/skid_iso_dark.png"
+            alt="3D-модель: Блок эжектора 7,0 × 3,2 м" camera-controls camera-orbit="-40deg 68deg auto" touch-action="pan-y" shadow-intensity="0.6"
+            exposure="1.1" environment-image="neutral" interaction-prompt="none" loading="lazy"></model-viewer>
+        </div>
+      </figure>
+      <div class="cad__videos" id="videos"></div>
+    </div>
+  </div>
+</section>
+<section id="drawings" class="sec">
+  <div class="wrap">
+    <h2 class="h">5 чертежей, 7 листов A3</h2>
+    <p class="intro" id="dwIntro">Колесо, кнопки, двойной щелчок: масштаб. Штамп SolidWorks, английский.</p>
+    <div class="dw-tabs" id="dw-tabs" role="tablist" aria-label="Листы чертежей"></div>
+    <div class="tb" id="dw-tb" aria-live="polite"></div>
+    <div class="table">
+      <div class="viewer viewer--paper" id="dw-viewer"></div>
+    </div>
+  </div>
+</section>
+<section id="calc" class="sec">
+  <div class="wrap">
+    <h2 class="h">Расчёт</h2>
+    <p class="intro" id="calcSrc"></p>
+    <figure class="ejfig">
+      <svg viewBox="0 0 1000 260" id="ejsvg" role="img" aria-label="Схема эжектора EJ-1 с основными размерами"></svg>
+    </figure>
+    <div class="calcgrid">
+      <div><h3 class="h3">Эжектор EJ-1</h3><dl class="kv" id="kvEj"></dl></div>
+      <div><h3 class="h3">Сепаратор V-1</h3><dl class="kv" id="kvSep"></dl></div>
+      <div><h3 class="h3">Насос P-1 и охладитель</h3><dl class="kv" id="kvPump"></dl></div>
+    </div>
+  </div>
+</section>
+<section id="economics" class="sec">
+  <div class="wrap">
+    <h2 class="h">Стоимость и окупаемость</h2>
+    <p class="intro" id="capexLine"></p>
+    <div class="eco">
+      <div>
+        <h3 class="h3">CAPEX по разделам, тыс. $</h3>
+        <div class="bars" id="capexBars"></div>
+        <div class="note" id="bomNote"></div>
+      </div>
+      <div class="payback">
+        <h3 class="h3">Окупаемость от цены CO<sub>2</sub></h3>
+        <label class="range"><span>Цена углерода: <output id="co2Out">$20</output> за тонну</span>
+          <input type="range" id="co2" min="0" max="100" value="20" step="1"></label>
+        <p class="ticks"><button type="button" data-c="1">$1, KZ ETS сейчас</button><button type="button" data-c="20">$20, теневая цена</button><button type="button" data-c="0">без цены</button></p>
+        <p class="pb" id="pb" aria-live="polite"></p>
+        <p class="pbsub" id="pbsub"></p>
+        <p class="honest" id="honest"></p>
+      </div>
+    </div>
+    <h3 class="h3 h3--gap">Шесть вариантов</h3>
+    <ul class="verdict" id="vsvru"></ul>
+    <div class="vartable-wrap"><table class="vartable" id="vars">
+      <thead><tr><th>Вариант</th><th>CAPEX, тыс. $</th><th class="rng">диапазон CAPEX</th><th>OPEX, тыс. $/год</th><th>Доход, тыс. $/год</th><th>Снижение выбросов</th></tr></thead><tbody></tbody>
+    </table></div>
+  </div>
+</section>
+<section id="delivery" class="sec">
+  <div class="wrap">
+    <h2 class="h" id="delH">Сроки</h2>
+    <div class="gantt" id="gantt"></div>
+    <div class="kz">
+      <div><h3 class="h3">Делается в Казахстане</h3><ul id="kzMade"></ul></div>
+      <div><h3 class="h3">Покупается</h3><ul id="kzBought"></ul></div>
+    </div>
+  </div>
+</section>
+<section id="verdict" class="sec sec--verdict">
+  <div class="wrap">
+    <h2 class="h">Почему газгольдер и эжектор</h2>
+    <dl class="sum" id="sum"></dl>
+    <ul class="why" id="why"></ul>
+  </div>
+</section>
+</main>
+<footer class="foot">
+  <div class="wrap foot__grid">
+    <div>
+      <p>Catalyst 2026, кейс 2. Газгольдер и жидкостный эжектор вместо компрессорной VRU.</p>
+      <p class="muted">Снимки: Esri World Imagery (Maxar, Earthstar Geographics). Облако, фонари и трубы на снимке: схема.</p>
+    </div>
+    <div class="tb tb--foot" aria-label="Основная надпись">
+      <div class="tb__name"><span>Наименование</span>Улавливание паров метана</div>
+      <div><span>Обозначение</span>VD-00-000</div><div><span>Изм.</span>A</div><div><span>Листов</span>7</div>
+    </div>
+  </div>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+{
+  "project": {
+    "title_ru": "Вариант D: газгольдер и жидкостный эжектор вместо компрессорной VRU",
+    "case": "Catalyst 2026, кейс 2: улавливание паров на резервуарном парке",
+    "client_need": "Найти решение дешевле классической установки улавливания паров (VRU) без потери качества",
+    "park": "6 резервуаров РВС-5000 со стационарной крышей, 2 ряда по 3",
+    "emission_kg_h": 20,
+    "emission_note": "метан, весь парк вместе",
+    "vapour_composition_pct": {"CH4": 85, "C2-C4": 10, "inerts": 5},
+    "ambient_c": [-10, 30],
+    "methane_t_per_year": 175.2,
+    "capture_pct": 95,
+    "co2e_reduction_t_per_year": 4765,
+    "co2e_note": "175,2 т CH4 × GWP100 27,2 (IPCC AR6) = 4 765 т CO2-экв в год; при улавливании 95 % предотвращается ≈ 4 527 т"
+  },
+  "how_it_works": [
+    {"step": "Резервуары дышат", "text": "Днём пары вытесняются из 6 резервуаров в общий газоуравнительный коллектор Г-150 вместо атмосферы. Ночью резервуары забирают газ обратно из того же коллектора."},
+    {"step": "Газгольдер копит", "text": "Двухмембранный газгольдер 1 500 м³ держит в коллекторе +0,5 кПа и принимает суточный излишек паров."},
+    {"step": "Эжектор включается по уровню", "text": "При заполнении газгольдера 80 % насос P-1 запускает струю дизтоплива 30 м³/ч через сопло 16,8 мм при 6,5 бар. Струя засасывает газ и сжимает его до 0,5 бар изб. При 55 % насос останавливается."},
+    {"step": "Сепаратор делит", "text": "В сепараторе V-1 газ отделяется от дизтоплива и уходит к горелкам печи П-1 как топливо. Тяжёлые C3-C4 растворяются в дизтопливе и уходят с ним в линию отгрузки."},
+    {"step": "Защиты", "text": "Анализаторы O2 (сигнал 2 %, останов 5 %), отсечной клапан XV-1, огнепреградители, предохранительные клапаны, газоанализаторы на блоке, 11 блокировок."}
+  ],
+  "setpoints": {"holder_kpa": 0.5, "relief_kpa": 1.0, "tank_breather_kpa": [1.8, -0.2], "ejector_on_pct": 80, "ejector_off_pct": 55, "ejector_capacity_m3h": 45, "gasholder_m3": 1500, "o2_alarm_pct": 2, "o2_trip_pct": 5},
+  "seasons": {"spring_autumn": "базовый режим", "summer": "+28 ±10 °C, вытеснение паров в 1,5 раза больше", "winter": "-12 ±4 °C"},
+  "calc": {
+    "source": "calc_d.py, ред. 2, одобрен независимой проверкой",
+    "motive_liquid": "дизтопливо", "motive_flow_m3h": 30, "nozzle_pressure_bar_g": 6.5,
+    "nozzle_d_mm": 16.8, "throat_d_mm": 41.1, "area_ratio_m": 6, "throat_length_mm": 823, "gap_mm": 41,
+    "diffuser_deg": 8, "inlet_cone_deg": 30, "nozzle_velocity_ms": 37.6,
+    "gas_suction_m3h": 58, "discharge_bar_a": 1.51, "entrainment_ratio": 1.94,
+    "efficiency_required_pct": 13.1, "efficiency_design_pct": 15,
+    "pump": {"flow_m3h": 30, "head_m": 81, "shaft_kw": 9.2, "motor_kw": 11},
+    "cooler_kw": 9.7,
+    "separator": {"id_mm": 1000, "wall_mm": 9, "tt_mm": 4156, "volume_m3": 3.53, "design_mpa": 1.0, "design_c": 100, "test_mpa": 1.38, "steel": "09Г2С", "mass_kg": 1400,
+                  "levels_mm": {"LLL": 300, "NLL": 2210, "HLL": 2606, "HHLL": 2706}}
+  },
+  "interlocks": [
+    ["I-1", "LIC-101 газгольдер ≥ 80 %", "пуск P-1, открыть XV-1"],
+    ["I-2", "LIC-101 газгольдер ≤ 55 %", "останов P-1, закрыть XV-1"],
+    ["I-3", "LSLL-101 ≤ 10 %", "запрет пуска P-1"],
+    ["I-4", "LSHH-101 ≥ 95 % / PT-100 +1,0 кПа", "сигнал; сброс PSV-100"],
+    ["I-5", "AT-100, AT-101 O2 2 % / 5 %", "сигнал / останов, XV-1 закрыть"],
+    ["I-6", "PIC-101 всас < +0,2 кПа", "открыть PCV-1 (рецикл)"],
+    ["I-7", "LT-201/202 V-1 LALL / LAHH", "останов P-1"],
+    ["I-8", "PT-201 V-1 ≥ 0,9 МПа", "останов P-1, XV-1 закрыть"],
+    ["I-9", "P-1 остановлен", "закрыть XV-1"],
+    ["I-10", "GT-301…303 20 / 50 % НКПР", "сигнал / аварийный останов"],
+    ["I-11", "TIC-202 контур > 45 °C", "вентилятор E-1 на максимум"]
+  ],
+  "drawings": [
+    {"no": "VD-00-001", "title": "Технологическая схема (P&ID)", "files": ["drawings/pid.png", "drawings/pid.svg", "drawings/VD_00_001_PID.pdf"], "sheets": 1},
+    {"no": "VD-00-002", "title": "План площадки (генплан) 1:1000, фрагмент 1:500", "files": ["drawings/site.png", "drawings/VD_00_002_SITE.pdf"], "sheets": 1},
+    {"no": "VD-01-000", "title": "Блок эжектора, общий вид 1:50", "files": ["drawings/ga1.png", "drawings/ga2.png", "drawings/ga3.png", "drawings/VD_01_000_GA.pdf"], "sheets": 3},
+    {"no": "VD-01-100", "title": "Эжектор EJ-1, сборочный 1:5, узел Б 1:1", "files": ["drawings/ejector.png", "drawings/VD_01_100_EJ.pdf"], "sheets": 1},
+    {"no": "VD-01-300", "title": "Сепаратор V-1, 1:25", "files": ["drawings/separator.png", "drawings/VD_01_300_V1.pdf"], "sheets": 1}
+  ],
+  "cad": {
+    "models": [
+      {"name": "Блок эжектора 7,0 × 3,2 м", "glb": "cad/skid.glb", "still": "cad/skid_iso.png", "exploded": "cad/skid_exploded.png"},
+      {"name": "Сепаратор V-1", "glb": "cad/separator.glb", "still": "cad/separator_iso.png"},
+      {"name": "Эжектор EJ-1", "glb": "cad/ejector.glb", "still": "cad/ejector_iso.png"}
+    ],
+    "videos": [
+      {"name": "Блок эжектора, облёт", "mp4": "video/skid_turntable.mp4", "poster": "video/skid_turntable_poster.png", "seconds": 3},
+      {"name": "Блок эжектора, разнесённый вид", "mp4": "video/skid_explode.mp4", "poster": "video/skid_explode_poster.png", "seconds": 4},
+      {"name": "Эжектор EJ-1, облёт", "mp4": "video/ejector_turntable.mp4", "poster": "video/ejector_turntable_poster.png", "seconds": 3}
+    ],
+    "live_figures": [
+      {"name": "Вариант D: сутки работы, сезоны, газгольдер и эжектор (интерактивная изометрия)", "html": "live/d.html", "light": "live/d-light.html"},
+      {"name": "Резервуарный парк, 6 РВС на коллекторе", "html": "live/farm.html"},
+      {"name": "Классическая VRU в разрезе (для сравнения)", "html": "live/vru.html"},
+      {"name": "РВС-5000 и куда уходят пары за сутки", "html": "live/rvs-vru.html"},
+      {"name": "3D-модель парка (three.js)", "html": "live/park.html"}
+    ]
+  },
+  "photos": [
+    {"file": "photo/0_НПС_Касымова_обзор.jpg", "caption": "НПС им. Касымова, обзор (Esri World Imagery)"},
+    {"file": "photo/1_НПС_Касымова_парк_крупно.jpg", "caption": "НПС им. Касымова, резервуарный парк"},
+    {"file": "photo/2_соседний_парк_4_РВС.jpg", "caption": "Соседний парк из 4 РВС"},
+    {"file": "photo/3_НПС_Шманова_крупно.jpg", "caption": "НПС Шманова, крупно"},
+    {"file": "photo/4_НПС_Шманова_обзор.jpg", "caption": "НПС Шманова, обзор"}
+  ],
+  "site_plan": {"gasholder_to_tank_m": 43.9, "skid_to_tank_m": 45.7, "gasholder_to_skid_m": 20.4, "header_length_m": 204},
+  "bom": {
+    "rate": {"date": "14.11.2026", "USD_KZT": 444.3, "EUR_KZT": 490.91, "RUB_KZT": 5.41, "source": "Нацбанк РК"},
+    "capex_usd": [352257, 612456], "capex_kzt_mln": [157, 272], "vat_note": "без НДС 16 %",
+    "groups_usd": [
+      {"name": "Обвязка резервуаров", "min": 21449, "max": 30673},
+      {"name": "КИП и автоматика", "min": 49681, "max": 85865},
+      {"name": "Газгольдер GH-1", "min": 119604, "max": 182574},
+      {"name": "Блок эжектора", "min": 45168, "max": 78497},
+      {"name": "Линии вне блока", "min": 11479, "max": 20707},
+      {"name": "Работы и услуги", "min": 72852, "max": 158462},
+      {"name": "Непредвиденные 10 %", "min": 32023, "max": 55678}
+    ],
+    "items_total": 47, "items_with_found_price": 20,
+    "file": "../../смета/BOM_variant_D.xlsx",
+    "key_prices": [
+      ["Газгольдер Zorg ≈1 500 м³ отдельностоящий", "56 700-59 500 EUR"],
+      ["Клапан дыхательный КДС-3000", "39 000-67 103 RUB"],
+      ["Анализатор O2 АКПМ-1-11Г", "423 800-466 400 RUB"],
+      ["Насос ЦНС(г) 38-88 с Ex двигателем", "200 000-260 000 RUB"],
+      ["Кран DN100 с Ex приводом", "127 713 RUB"]
+    ]
+  },
+  "variants": [
+    {"id": 1, "name": "Классическая VRU (компрессор)", "capex_usd_k": [320, 570], "opex_usd_k": [19, 23], "revenue_usd_k": [26, 35], "reduction_pct": 95},
+    {"id": 2, "name": "Только обвязка и новые клапаны", "capex_usd_k": [80, 150], "opex_usd_k": [2, 3], "revenue_usd_k": [0, 0], "reduction_pct": [30, 80]},
+    {"id": 3, "name": "Обвязка и закрытая горелка", "capex_usd_k": [400, 750], "opex_usd_k": [5, 10], "revenue_usd_k": [0, 0], "reduction_pct": [85, 97]},
+    {"id": 4, "name": "Вариант D: газгольдер и эжектор", "capex_usd_k": [352, 612], "opex_usd_k": [10, 15], "revenue_usd_k": [10, 14], "reduction_pct": 95, "revenue_note": "экономия топлива печи"},
+    {"id": 5, "name": "Гибрид: газгольдер и малая VRU", "capex_usd_k": [430, 730], "opex_usd_k": [15, 20], "revenue_usd_k": [26, 35], "reduction_pct": 98},
+    {"id": 6, "name": "Понтоны в 6 резервуарах", "capex_usd_k": [340, 900], "opex_usd_k": [2, 2], "revenue_usd_k": [0, 0], "reduction_pct": [80, 90]}
+  ],
+  "economics": {
+    "payback_formula": "годовой эффект = экономия топлива печи + цена CO2 × 4 765 т − OPEX; срок окупаемости = CAPEX / годовой эффект",
+    "carbon_price_usd_t": {"kz_ets_now": 1, "shadow_default": 20, "slider": [0, 100]},
+    "methane_in_kz_ets": false,
+    "gas_price_kzt_per_1000m3": {"Atyrau": 41993, "Mangystau": 57649},
+    "electricity_kzt_kwh": 42.78,
+    "honest_note": "Одной экономией газа вариант D не окупается. При теневой цене углерода около $20/т окупаемость около 5-7 лет."
+  },
+  "delivery": {
+    "months": [9, 15],
+    "phases": [["Проект", 3, 5], ["Экспертизы", 2, 3], ["Закупка и изготовление", 3, 6], ["Монтаж", 1, 2]],
+    "made_in_kz": ["Проектирование (КМГ Инжиниринг)", "Эжектор и рама", "Сепаратор V-1 (АтырауНефтеМаш, Петровский завод)", "Монтаж (OCC, ОзенМунайСервис)", "Пусконаладка"],
+    "bought": ["Газгольдер (Zorg, ЕС)", "Насос и Ex двигатели", "КИП с сертификатом ТР ТС 012/2011"]
+  }
+}
