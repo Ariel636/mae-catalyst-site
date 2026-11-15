@@ -454,3 +454,5 @@ html.static .storyctl .autostart{display:none}
 .verdict{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px 28px}
 .verdict li{line-height:1.4}
 .verdict li::before{content:"";display:inline-block;width:8px;height:8px;margin-right:10px;background:var(--sodium);vertical-align:middle}
+
+.ch4eq{display:block;font-size:.85em;color:var(--muted,#A9B4C6);margin-top:2px}

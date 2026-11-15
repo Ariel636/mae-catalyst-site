@@ -659,20 +659,22 @@ function econ(D) {
   const sgn = n => { n = Math.round(n); return n < 0 ? '−' + nf(-n, 0) : nf(n || 0, 0); };
   const upd = () => {
     const c = +sl.value; out.textContent = '$' + c;
+    // methane is priced through its CO2 equivalent: 1 t CH4 = GWP100 27.2 t CO2-eq
+    $('#ch4eq').textContent = c ? `≈ $${nf(Math.round(c * 27.2), 0)} за т метана` : 'выбросы не оплачиваются';
     const carbon = c * T / 1000; // тыс. $
     const best = v.revenue_usd_k[1] + carbon - v.opex_usd_k[0], worst = v.revenue_usd_k[0] + carbon - v.opex_usd_k[1];
     const pb = $('#pb');
     if (best <= 0) pb.textContent = 'не окупается';
     else if (worst <= 0) { const a = v.capex_usd_k[0] / best; pb.textContent = a > 30 ? 'не окупается' : `от ${nf(a, 1)} года, в худшем случае не окупается`; }
     else { const a = v.capex_usd_k[0] / best, b = v.capex_usd_k[1] / worst; pb.textContent = a > 30 ? 'больше 30 лет' : `${nf(a, 1)}–${b > 30 ? '30+' : nf(b, 1)} года`; }
-    $('#pbsub').textContent = `Эффект ${sgn(worst)}…${sgn(best)} тыс. $/год: топливо ${v.revenue_usd_k.join('–')} + $${c} × ${nf(T)} т − OPEX ${v.opex_usd_k.join('–')}`;
+    $('#pbsub').textContent = `Эффект ${sgn(worst)}…${sgn(best)} тыс. $/год: топливо ${v.revenue_usd_k.join('–')} + $${c} × ${nf(T)} т CO₂-экв (175,2 т метана × 27,2) − OPEX ${v.opex_usd_k.join('–')}`;
     document.querySelectorAll('.ticks button').forEach(b => b.setAttribute('aria-pressed', b.dataset.c === sl.value));
   };
   sl.addEventListener('input', upd);
   document.querySelectorAll('.ticks button').forEach(b => b.onclick = () => { sl.value = b.dataset.c; upd(); });
   upd();
   // one payback figure on the page: the calculator above; the note only says why it needs a carbon price
-  $('#honest').textContent = `Без цены CO₂ не окупается: ${sgn(v.revenue_usd_k[0] - v.opex_usd_k[1])}…${sgn(v.revenue_usd_k[1] - v.opex_usd_k[0])} тыс. $/год. Метан ${E.methane_in_kz_ets ? 'в' : 'вне'} KZ ETS, там ~$${E.carbon_price_usd_t.kz_ets_now}/т`;
+  $('#honest').textContent = `Без платы за выбросы не окупается: ${sgn(v.revenue_usd_k[0] - v.opex_usd_k[1])}…${sgn(v.revenue_usd_k[1] - v.opex_usd_k[0])} тыс. $/год. Метан ${E.methane_in_kz_ets ? 'в' : 'вне'} KZ ETS, там ~$${E.carbon_price_usd_t.kz_ets_now}/т`;
   const vru = D.variants.find(x => x.id === 1), r2 = a => `${a[0]}–${a[1]}`;
   const opexV = v.opex_usd_k, opexR = vru.opex_usd_k;
   // the honest comparison with VRU, as anchors
@@ -681,7 +683,7 @@ function econ(D) {
   // closing section: four numbers, payback at the $20/t shadow price from the same calculator
   const c20 = E.carbon_price_usd_t.shadow_default, eff = c20 * T / 1000;
   const pb20 = `${nf(v.capex_usd_k[0] / (v.revenue_usd_k[1] + eff - v.opex_usd_k[0]), 1)}–${nf(v.capex_usd_k[1] / (v.revenue_usd_k[0] + eff - v.opex_usd_k[1]), 1)}`;
-  $('#sum').innerHTML = [[`${v.reduction_pct} %`, 'улавливание метана'], [`$${r2(v.capex_usd_k)} тыс.`, 'CAPEX без НДС'], [`${pb20} года`, `окупаемость при CO<sub>2</sub> $${c20}/т`], [`${r2(D.delivery.months)} мес.`, 'до пуска']]
+  $('#sum').innerHTML = [[`${v.reduction_pct} %`, 'улавливание метана'], [`$${r2(v.capex_usd_k)} тыс.`, 'CAPEX без НДС'], [`${pb20} года`, `окупаемость при $${c20} за т CO<sub>2</sub>-экв`], [`${r2(D.delivery.months)} мес.`, 'до пуска']]
     .map(([n, t]) => `<div><dt>${t}</dt><dd>${n}</dd></div>`).join('');
   $('#why').innerHTML = [`Без компрессора и вращающихся газовых машин`, `OPEX $${r2(opexV)} тыс./год, у VRU $${r2(opexR)} тыс.`,
     `Эжектор, рама, сепаратор из Казахстана`, `CAPEX как у VRU, выручка от газа меньше`].map(x => `<li>${x}</li>`).join('');
