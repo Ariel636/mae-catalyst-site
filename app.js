@@ -255,7 +255,7 @@ if (STILL) {
   const scrollP = () => clamp((scrollY - track.offsetTop) / len(), 0, 1);
   const posOf = p => track.offsetTop + p * len();
   const A_ = { on: false, playing: false, p: 0, speed: 1, last: 0, setY: 0, sync: 0 };
-  const DUR = 80000; // whole day at 1x, ms
+  const DUR = 40000; // whole day at 1x, ms (user asked for twice the original pace)
   const tick = now => {
     let p;
     if (A_.playing) {
@@ -306,7 +306,7 @@ function FrameAuto(frames, stages) {
   let i = 0, timer = 0, on = false, speed = 1;
   const fill = $('.ab__fill', bar), clk = $('.ab__clock', bar), pauseB = $('#abPause'), speedB = $('#abSpeed'), nextB = $('#abNext');
   const show = () => { frames[i].scrollIntoView({ behavior: 'instant' }); fill.style.transform = `scaleX(${i / (frames.length - 1)})`; clk.textContent = `Кадр ${i + 1} из ${frames.length}`; };
-  const play = v => { clearInterval(timer); pauseB.textContent = v ? 'Пауза' : 'Продолжить'; pauseB.setAttribute('aria-pressed', !v); if (v) timer = setInterval(() => { if (i >= frames.length - 1) { play(false); nextB.hidden = false; pauseB.hidden = true; nextB.focus({ preventScroll: true }); return; } i++; show(); }, 9000 / speed); timer = v ? timer : 0; };
+  const play = v => { clearInterval(timer); pauseB.textContent = v ? 'Пауза' : 'Продолжить'; pauseB.setAttribute('aria-pressed', !v); if (v) timer = setInterval(() => { if (i >= frames.length - 1) { play(false); nextB.hidden = false; pauseB.hidden = true; nextB.focus({ preventScroll: true }); return; } i++; show(); }, 4500 / speed); timer = v ? timer : 0; };
   return {
     start() { on = true; bar.hidden = false; nextB.hidden = true; pauseB.hidden = false; i = 0; show(); play(true); pauseB.focus({ preventScroll: true }); },
     stop() { play(false); on = false; bar.hidden = true; },
